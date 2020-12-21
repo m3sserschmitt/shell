@@ -1,0 +1,30 @@
+{
+  "TARGET": "shell",
+  "CC": "gcc",
+  "LD": "gcc",
+  "C_FLAGS": [
+    "-c",
+    "-Wall"
+  ],
+  "LD_FLAGS": [],
+  "LIBS": [
+    "lua",
+   "m",
+   "dl"
+  ],
+  "INCLUDE_PATHS": [],
+  "EXTENSIONS": [
+    "c"
+  ],
+  "IGNORE_PATHS": [
+    "main.c",
+    "proc1.c",
+    "proc2.c",
+    "proc3.c"
+  ],
+  "CUSTOM_TARGETS": {},
+  "VERBOSE": false,
+  "RM": "rm -v",
+  "BUILD_DIRECTORY": "./build",
+  "BIN_DIRECTORY": "./build"
+}
