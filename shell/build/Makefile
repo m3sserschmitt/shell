@@ -15,7 +15,7 @@ all: $(OUT)
 $(OUT): $(OBJECTS)
 	@echo Building target: "$@".
 	@echo Invoking $(LD) Linker ...
-	$(LD) $(OBJECTS) $(LIBS)  -o $(OUT)
+	$(LD) $(OBJECTS) $(LIBS) -g -O0 ../../libs/libshellutil.a -o $(OUT)
 	@echo Target $(TARGET) build successfully.
 	@echo Done.
 

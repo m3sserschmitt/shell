@@ -1,14 +1,18 @@
-OBJECTS += ./exec.o \
+OBJECTS += ./cd.o \
+./exec.o \
+./main.o \
 ./shell.o \
-./util.o 
+./shutil.o 
 
-CC_DEPS += ./deps/exec.d \
+CC_DEPS += ./deps/cd.d \
+./deps/exec.d \
+./deps/main.d \
 ./deps/shell.d \
-./deps/util.d 
+./deps/shutil.d 
 
 ./%.o: ../%.c
 	@echo 'Building file: $<'
-	$(CC) -c -Wall $< -o $@
+	$(CC) -c -Wall -g -O0 -I../../libs/include $< -o $@
 	@echo 'Build finished: $<'
 	@echo
 
