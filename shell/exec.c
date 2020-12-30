@@ -1,116 +1,197 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <wait.h>
+#include <errno.h>
 
 #include <lua.h>
-#include <lualib.h>
 #include <lauxlib.h>
 
-#define RECV_BUFFER 1024;
+#include "shutil.h"
 
-extern size_t str_count(const char *in, const char *str);
-extern char **split(const char *str, const char *delim, long int *count);
+#include "util/str.h"
+#include "util/mem.h"
+#include "util/data.h"
 
-int create_process(const char *exec, char *const *argv, int **fds, long i)
+/**
+ * @brief Start a new process
+ * 
+ * @param exec Path of executable
+ * @param argv Null terminated list of arguments.
+ * @param fds Pipe descriptors for interprocess comunication.
+ * @param i Process index onto pipeline
+ * @return int 0, if successful, -1 for errors.
+ */
+int create_process(const char *exec, char *const *argv, int **fds, int i)
 {
+    /* try to fork a new child process. */
     pid_t pid = fork();
 
+    /* return -1 if fork failed. */
     if (pid < 0)
     {
         return -1;
     }
     else if (pid == 0)
     {
+        /* child closes up reading end of pipe to next child. */
         close(fds[i][0]);
 
         if (i == 0)
         {
+            /* first child on pipeline duplicates its writing end of pipe
+             * to stdout (if so, output is redirected to the next child).
+             */
             dup2(fds[i][1], 1);
         }
         else
         {
+            /* other child proceses close writing end of pipe to previous child. */
             close(fds[i - 1][1]);
 
+            /* copy reading end of pipe to stdin 
+             * to receive output from previous process
+             */
             dup2(fds[i - 1][0], 0);
+
+            /* copy writing end of pipe to stdout
+             * so output will be redirected to next process.
+             */
             dup2(fds[i][1], 1);
         }
-
-        return execve(exec, argv, NULL);
+        
+        if (execve(exec, argv, NULL) < 0)
+        {
+            return EXIT_FAILURE;
+        }
     }
     else
     {
-        wait(NULL);
+        int wstatus;
+        if(waitpid(pid, &wstatus, 0) < 0)
+        {
+            return -1;
+        }
+
+        if(WIFEXITED(wstatus))
+        {
+            int status = WEXITSTATUS(wstatus);
+
+            if(status != EXIT_SUCCESS)
+            {
+                printf("\nWarning: command '%s' (PID %d) terminated with status code %d.\n", exec, pid, status);
+                return -1;
+            }
+        }
+
         close(fds[i][1]);
     }
 
     return 0;
 }
 
+/**
+ * @brief Execute command and the result is pushed back on stack.
+ * 
+ * @param L Current Lua state.
+ * @return int number of values pushed back on stack or -1 is errors occured.
+ */
 int exec(lua_State *L)
 {
-    const char *cmd = luaL_checkstring(L, 1);
+    /* command to be executed. */
+    char *command;
 
-    long count;
-    char **commands = split(cmd, "|", &count);
+    /* if 1, write command output to stdout (1, by default), 0 otherwise. */
+    int stdoutw = 1;
 
-    int **fds = (int **)malloc((count) * sizeof(int *));
-
-    for (long i = 0; i < count; i++)
+    /* check number of arguments. */
+    switch (lua_gettop(L))
     {
-        long argc;
-        char **argv = split(commands[i], " ", &argc);
+    case 0:
+        /* if no argument passed, then return. */
+        luaL_error(L, "no arguments provided to function call.");
 
+    case 1:
+        /* get first argument from stack, command to be executed. */
+        command = (char *)luaL_checkstring(L, 1);
+        break;
+
+    default:
+        /* get command to be executed and stdoutw */
+        command = (char *)luaL_checkstring(L, 1);
+        stdoutw = luaL_checkinteger(L, 2);
+        break;
+    }
+
+    /* check if command is a valid string. */
+    if (command == NULL)
+    {
+        luaL_error(L, "argument 0 should be of type string.");
+    }
+
+    /* number of subcommands (if pipes were used) */
+    int cmdc;
+    char **cmd = split(command, "|", &cmdc);
+
+    /* allocate memory for pipe descriptors */
+    int **fds = (int **)malloc((cmdc) * sizeof(int *));
+
+    /* iterate over all subcommands. */
+    for (int i = 0; i < cmdc; i++)
+    {
+        /* arguments count for subcommand. */
+        int argc;
+
+        /* subcommand arguments. */
+        char **argv = split(cmd[i], " ", &argc);
+
+        /* create pipe for interprocess comunication. */
         fds[i] = (int *)malloc(2 * sizeof(int));
         pipe(fds[i]);
 
-        if (create_process(argv[0], argv, fds, i) < 0)
+        /* try to create process and return error if it fails. */
+        
+        char *exec_cmd = resolve_path(L, argv[0], NULL);
+        if (create_process(exec_cmd, argv, fds, i) < 0)
         {
-            return -1;
+            luaL_error(L, "errors were encountered while executing command '%s'.", argv[0]);
         }
+        free(exec_cmd);
 
-        for (long j = 0; j < argc; j++)
-        {
-            free(argv[j]);
-        }
-
-        free(argv);
-        free(commands[i]);
+        /* free command string and its arguments. */
+        free_memory((void **)argv, argc);
+        free(cmd[i]);
     }
 
-    free(commands);
+    /* free command vector. */
+    free(cmd);
 
-    size_t size = RECV_BUFFER;
-    char *recv_buffer = (char *)malloc(size * sizeof(char));
-    memset(recv_buffer, 0, size);
+    /* buffer to receive results. */
+    char *recv_buffer;
 
-    char *recv = (char *)malloc(512 * sizeof(char));
-    memset(recv, 0, 512);
+    /* read output from command. */
+    ssize_t bytes_read = read_data(fds[cmdc - 1][0], &recv_buffer, stdoutw);
 
-    while (read(fds[count - 1][0], recv, 512) > 0)
+    /* release memory for pipe descriptors after output was received. */
+    free_memory((void **)fds, cmdc);
+
+    /* check for errors */
+    if (bytes_read < 0)
     {
-        if (strlen(recv_buffer) + strlen(recv) > size)
-        {
-            size += size;
-            recv_buffer = realloc(recv_buffer, size * sizeof(char));
-        }
-
-        strcat(recv_buffer, recv);
-        memset(recv, 0, 512);
+        luaL_error(L, "failed to receive output data from child process.");
     }
 
-    for (long i = 0; i < count; i++)
+    /* remove trailing new line char */
+    if (bytes_read && recv_buffer[bytes_read - 1] == '\n')
     {
-        free(fds[i]);
+        recv_buffer[bytes_read - 1] = 0;
     }
 
-    free(fds);
-
+    /* push result on stack. */
     lua_pushstring(L, recv_buffer);
-
-    free(recv);
     free(recv_buffer);
 
+    /* return number of results;
+     * return 1, since only one string was pushed back on stack.
+     */
     return 1;
 }

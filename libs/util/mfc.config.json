@@ -1,0 +1,26 @@
+{
+  "TARGET": "libshellutil.so",
+  "CC": "gcc",
+  "LD": "ld",
+  "C_FLAGS": [
+    "-c",
+    "-Wall",
+    "-fPIC"
+  ],
+  "LD_FLAGS": [
+    "-shared"
+  ],
+  "LIBS": [],
+  "INCLUDE_PATHS": [],
+  "EXTENSIONS": [
+    "c"
+  ],
+  "IGNORE_PATHS": [],
+  "CUSTOM_TARGETS": {
+    "static": "ar -rvs ../../libshellutil.a *.o"
+},
+  "VERBOSE": false,
+  "RM": "rm -v",
+  "BUILD_DIRECTORY": "./build",
+  "BIN_DIRECTORY": "../"
+}

@@ -4,23 +4,27 @@
   "LD": "gcc",
   "C_FLAGS": [
     "-c",
-    "-Wall"
+    "-Wall",
+    "-g",
+    "-O0"
   ],
-  "LD_FLAGS": [],
+  "LD_FLAGS": [
+    "-g",
+    "-O0",
+    "../../libs/libshellutil.a"
+  ],
   "LIBS": [
     "lua",
    "m",
    "dl"
   ],
-  "INCLUDE_PATHS": [],
+  "INCLUDE_PATHS": [
+    "../libs/include"
+  ],
   "EXTENSIONS": [
     "c"
   ],
   "IGNORE_PATHS": [
-    "main.c",
-    "proc1.c",
-    "proc2.c",
-    "proc3.c"
   ],
   "CUSTOM_TARGETS": {},
   "VERBOSE": false,
