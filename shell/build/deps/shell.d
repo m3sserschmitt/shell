@@ -1,5 +1,4 @@
 ./shell.o: ../shell.c \
-../../libs/include/util/path.h \
-../../libs/include/util/str.h \
+../context.h \
 ../env.h \
 ../shutil.h

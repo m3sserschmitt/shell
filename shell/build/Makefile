@@ -9,6 +9,8 @@ RM :=rm -v
 
 all: $(OUT)
 
+-include ./luafunc/subdir.mk
+-include ./shellfunc/subdir.mk
 -include ./subdir.mk
 -include $(CC_DEPS)
 

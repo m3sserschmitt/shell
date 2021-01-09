@@ -5,7 +5,9 @@
   "C_FLAGS": [
     "-c",
     "-Wall",
-    "-fPIC"
+    "-fPIC",
+    "-g",
+    "-O0"
   ],
   "LD_FLAGS": [
     "-shared"

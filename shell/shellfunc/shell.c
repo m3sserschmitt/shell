@@ -3,30 +3,38 @@
 #include <lua.h>
 #include <lauxlib.h>
 
+#include "context.h"
+#include "shellfunc.h"
+#include "luafunc.h"
 #include "shutil.h"
 #include "env.h"
 
-extern int cd(lua_State *L);
-extern int exec(lua_State *L);
-
-int execute(lua_State *L, const char *user_input)
+int execute(context *ctx)
 {
     int retv;
 
-    if (is_executable(L, user_input))
+    if(ctx->err)
     {
-        lua_getglobal(L, "exec");
-        lua_pushstring(L, user_input);
-        lua_pushinteger(L, 1);
+        free(ctx->err);
+        ctx->err = NULL;
+    }
 
-        retv = lua_pcall(L, 2, 1, 0);
+    if(ctx->result)
+    {
+        free(ctx->result);
+        ctx->result = NULL;
+    }
+
+    if (is_executable(ctx))
+    {
+        retv = shellf_exec(ctx);
+        s_handle_errors(ctx);
     }
     else
     {
-        retv = luaL_dostring(L, user_input);
+        retv = luaL_dostring(ctx->L, ctx->user_input);
+        handle_errors(ctx->L, retv);
     }
-
-    handle_errors(L, retv);
 
     return retv;
 }
@@ -40,6 +48,8 @@ int shell(lua_State *L)
     lua_pushcfunction(L, exec);
     lua_setglobal(L, "exec");
 
+    /* Init context */
+    context *ctx = init_context(L, NULL);
     char *user_input;
 
     /* start command line loop. */
@@ -57,13 +67,15 @@ int shell(lua_State *L)
             break;
         }
 
-        execute(L, user_input);
+        ctx->user_input = user_input;
 
+        execute(ctx);
+        shellf_history_push(ctx);
+        
         lua_settop(L, 0);
+
         free(user_input);
     }
-
-    free(user_input);
 
     return 0;
 }

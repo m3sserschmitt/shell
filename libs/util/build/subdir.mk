@@ -10,7 +10,7 @@ CC_DEPS += ./deps/data.d \
 
 ./%.o: ../%.c
 	@echo 'Building file: $<'
-	$(CC) -c -Wall -fPIC $< -o $@
+	$(CC) -c -Wall -fPIC -g -O0 $< -o $@
 	@echo 'Build finished: $<'
 	@echo
 

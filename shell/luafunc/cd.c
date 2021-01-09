@@ -1,7 +1,10 @@
 #include <unistd.h>
+#include <stdlib.h>
 
 #include <lua.h>
 #include <lauxlib.h>
+
+#include "shellfunc.h"
 
 int cd(lua_State *L)
 {
@@ -12,7 +15,9 @@ int cd(lua_State *L)
         lua_getglobal(L, "HOME");
     }
 
-    const char *path = luaL_checkstring(L, 1);
+    context *ctx = (context *)malloc(sizeof(context));
 
-    return chdir(path) < 0 ? -1 : 0;
+    ctx->user_input = luaL_checkstring(L, 1);
+
+    return shellf_cd(ctx);
 }

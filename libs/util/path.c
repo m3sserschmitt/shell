@@ -8,22 +8,36 @@
 
 #include <linux/limits.h>
 
-void get_dirname(const char *basename, char *dirname)
+char *get_dirname(const char *basename, char *dirname)
 {
+    char *buffer;
+    size_t len = strlen(basename);
+
+    if(dirname == NULL)
+    {
+        buffer = (char *)malloc(len * sizeof(char));
+    }
+    else 
+    {
+        buffer = dirname;
+    }
+
     int i;
-    for (i = strlen(basename); i >= 0; i--)
+    for (i = len; i >= 0; i--)
     {
         if (basename[i] == '/')
         {
-            dirname[i] = 0;
+            buffer[i] = 0;
             break;
         }
     }
 
     for (i--; i >= 0; i--)
     {
-        dirname[i] = basename[i];
+        buffer[i] = basename[i];
     }
+
+    return buffer;
 }
 
 char *get_exe_path()
@@ -43,11 +57,7 @@ char *get_exe_dir()
 
     readlink("/proc/self/exe", exe_path, PATH_MAX);
 
-    char *dirname = (char *)malloc(strlen(exe_path) * sizeof(char));
-
-    get_dirname(exe_path, dirname);
-
-    return dirname;
+    return get_dirname(exe_path, NULL);
 }
 
 char *get_home()
@@ -57,20 +67,32 @@ char *get_home()
     return pw->pw_dir;
 }
 
-void home_relative(char *path, char *relative)
+char *home_relative(char *path, char *relative)
 {
     char *home = get_home();
     char *ptr = strstr(path, home);
 
-    if(ptr && ptr == path)
-    {
-        char *buffer = (char *)malloc(strlen(path) * sizeof(char));
-        strcpy(buffer, path + strlen(home));
-        
-        *relative = '~';
-        strcpy(relative + 1, buffer);
-        
+    char *buffer;
 
-        free(buffer);
+    if (relative != NULL)
+    {
+        buffer = relative;
+    }
+    else
+    {
+        buffer = (char *)malloc(strlen(path) * sizeof(char));
+    }
+
+    if (ptr && ptr == path)
+    {
+        strcpy(buffer + 1, path + strlen(home));
+        *buffer = '~';
+        
+        return buffer;
+    }
+    else
+    {
+        strcpy(buffer, path);
+        return buffer;
     }
 }

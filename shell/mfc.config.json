@@ -19,7 +19,9 @@
    "dl"
   ],
   "INCLUDE_PATHS": [
-    "../libs/include"
+    "../libs/include",
+    "./luafunc",
+    "./shellfunc"
   ],
   "EXTENSIONS": [
     "c"

@@ -1,0 +1,1 @@
+./shellfunc.o: ../shellfunc.c

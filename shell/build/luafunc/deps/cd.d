@@ -1,0 +1,1 @@
+./luafunc/cd.o: ../luafunc/cd.c
