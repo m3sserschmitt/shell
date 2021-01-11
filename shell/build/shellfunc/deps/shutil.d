@@ -3,4 +3,5 @@
 ../../libs/include/util/str.h \
 ../shellfunc/context.h \
 ../shellfunc/env.h \
+../shellfunc/shellfunc.h \
 ../shellfunc/shutil.h

@@ -1,0 +1,23 @@
+{
+  "TARGET": "mv",
+  "CC": "gcc",
+  "LD": "gcc",
+  "C_FLAGS": [
+    "-c",
+    "-Wall",
+    "-g",
+    "-O0"
+  ],
+  "LD_FLAGS": [],
+  "LIBS": [],
+  "INCLUDE_PATHS": [],
+  "EXTENSIONS": [
+    "c"
+  ],
+  "IGNORE_PATHS": [],
+  "CUSTOM_TARGETS": {},
+  "VERBOSE": false,
+  "RM": "rm -v",
+  "BUILD_DIRECTORY": "./",
+  "BIN_DIRECTORY": "../bin"
+}

@@ -47,5 +47,5 @@ int cp(char *inputFile, char *outputFile){ // returneza eroare
 
 int main(int argc, char **argv){
 
-	cp(argv[1], argv[2]);
+	return cp(argv[1], argv[2]);
 }

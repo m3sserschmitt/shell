@@ -39,10 +39,12 @@ int ls(char *input[], int argc){
 				}
 
 	}
+
+	return 0;
 }
 
 
 int main(int argc, char **argv){
 
-	ls(argv, argc);
+	return ls(argv, argc);
 }

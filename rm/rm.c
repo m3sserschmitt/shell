@@ -14,5 +14,5 @@ int rm(char *file){
 
 int main(int argc, char *argv[]){
 
-	rm(argv[1]);
+	return rm(argv[1]);
 }

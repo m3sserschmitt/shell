@@ -2,6 +2,7 @@
 
 #include <lua.h>
 #include <lauxlib.h>
+#include <unistd.h>
 
 #include "context.h"
 #include "shellfunc.h"
@@ -50,6 +51,8 @@ int execute(context *ctx)
 
 int shell(lua_State *L)
 {
+    chdir(HOME);
+    
     /* Set some C functions for basic operations into current Lua state. */
     lua_pushcfunction(L, cd);
     lua_setglobal(L, "cd");

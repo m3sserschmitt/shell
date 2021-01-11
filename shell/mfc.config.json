@@ -32,5 +32,5 @@
   "VERBOSE": false,
   "RM": "rm -v",
   "BUILD_DIRECTORY": "./build",
-  "BIN_DIRECTORY": "./build"
+  "BIN_DIRECTORY": "../bin"
 }
