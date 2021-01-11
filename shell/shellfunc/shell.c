@@ -13,19 +13,28 @@ int execute(context *ctx)
 {
     int retv;
 
-    if(ctx->err)
-    {
-        free(ctx->err);
-        ctx->err = NULL;
-    }
+    // if(ctx->err)
+    // {
+    //     free(ctx->err);
+    //     ctx->err = NULL;
+    // }
 
-    if(ctx->result)
-    {
-        free(ctx->result);
-        ctx->result = NULL;
-    }
+    // if(ctx->result)
+    // {
+    //     free(ctx->result);
+    //     ctx->result = NULL;
+    // }
 
-    if (is_executable(ctx))
+    int is_exec = is_executable(ctx);
+
+    // printf("%d, %d\n", is_exec, ctx->script);
+
+    /*if(ctx->script)
+    {
+        retv = luaL_dofile(ctx->L, ctx->path);
+        handle_errors(ctx->L, retv);
+    }
+    else */if (is_exec)
     {
         retv = shellf_exec(ctx);
         s_handle_errors(ctx);
@@ -47,14 +56,14 @@ int shell(lua_State *L)
 
     lua_pushcfunction(L, exec);
     lua_setglobal(L, "exec");
-
-    /* Init context */
-    context *ctx = init_context(L, NULL);
+    
     char *user_input;
 
     /* start command line loop. */
     while (1)
     {
+        context *ctx = init_context(L, NULL);
+
         print_path();
 
         if (read_input(&user_input) < 0)
@@ -75,6 +84,7 @@ int shell(lua_State *L)
         lua_settop(L, 0);
 
         free(user_input);
+        free_context(ctx);
     }
 
     return 0;

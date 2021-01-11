@@ -1,12 +1,14 @@
 OBJECTS += ./data.o \
 ./mem.o \
 ./path.o \
-./str.o 
+./str.o \
+./user.o 
 
 CC_DEPS += ./deps/data.d \
 ./deps/mem.d \
 ./deps/path.d \
-./deps/str.d 
+./deps/str.d \
+./deps/user.d 
 
 ./%.o: ../%.c
 	@echo 'Building file: $<'

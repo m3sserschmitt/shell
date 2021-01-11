@@ -24,7 +24,10 @@ typedef struct
     int shellf;
 
     // pointer to shell function to be executed
-    void (*shellf_ptr)(void *);
+    int (*shellf_ptr)(void *);
+
+    // 1 if provided cmd is a file containing a script, 0 otherwise.
+    int script;
 
     // 1 to print output to stdout, 0 otherwise
     int stdoutw;

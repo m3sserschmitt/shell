@@ -8,6 +8,7 @@
 #include <lauxlib.h>
 
 #include "util/path.h"
+#include "util/user.h"
 
 char *BIN = NULL;
 char *SHELL_PATH = NULL;
@@ -27,25 +28,28 @@ int main(int argc, char **argv)
 
     /* Set some global variables. */
 
-    // SHELL_DIR = get_exe_dir();
-    BIN = (char *)"/bin";
+    BIN = get_exe_dir();
     SHELL_PATH = get_exe_path();
 
-    HOSTNAME = (char *)malloc(HOST_NAME_MAX * sizeof(char));
-    memset(HOSTNAME, 0, HOST_NAME_MAX);
+    HOSTNAME = get_hostname();
 
     HOME = get_home();
-    USER = getlogin();
-    gethostname(HOSTNAME, HOST_NAME_MAX);
-
-    lua_pushstring(L, SHELL_PATH);
-    lua_setglobal(L, "SHELL_PATH");
+    USER = get_user();
 
     lua_pushstring(L, BIN);
     lua_setglobal(L, "BIN");
 
+    lua_pushstring(L, SHELL_PATH);
+    lua_setglobal(L, "SHELL_PATH");
+
+    lua_pushstring(L, HOSTNAME);
+    lua_setglobal(L, "HOSTNAME");
+
     lua_pushstring(L, HOME);
     lua_setglobal(L, "HOME");
+
+    lua_pushstring(L, USER);
+    lua_setglobal(L, "USER");
 
     /* Start shell. */
 
@@ -53,10 +57,13 @@ int main(int argc, char **argv)
 
     /* Free memory allocated for env global variables */
 
-    // free(BIN);
+    free(BIN);
     free(SHELL_PATH);
 
     free(HOSTNAME);
+
+    free(HOME);
+    free(USER);
     
     return 0;
 }

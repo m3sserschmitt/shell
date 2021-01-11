@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <wait.h>
 
+#include <lua.h>
+#include <lauxlib.h>
+
 #include "shutil.h"
 #include "util/str.h"
 
@@ -45,6 +48,16 @@ int create_process(context *ctx)
             dup2(ctx->fds[1], 1);
         }
 
+        if(ctx->script)
+        {
+            if(luaL_dofile(ctx->L, ctx->path) != LUA_OK)
+            {
+                exit(EXIT_FAILURE);
+            }
+
+            exit(EXIT_SUCCESS);
+        }
+
         if (execve(ctx->path, ctx->argv, NULL) < 0)
         {
             return EXIT_FAILURE;
@@ -77,10 +90,10 @@ int create_process(context *ctx)
 
 int execute_shellf(context *ctx)
 {
-    ctx->shellf_ptr(ctx);
+    int retv = ctx->shellf_ptr(ctx);
     close(ctx->fds[1]);
     
-    return 0;
+    return retv;
 }
 
 void s_handle_errors(context *ctx)

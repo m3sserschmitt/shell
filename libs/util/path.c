@@ -63,8 +63,11 @@ char *get_exe_dir()
 char *get_home()
 {
     struct passwd *pw = getpwuid(getuid());
+    char *home = (char *)malloc((strlen(pw->pw_dir) + 1) * sizeof(char));
 
-    return pw->pw_dir;
+    strcpy(home, pw->pw_dir);
+
+    return home;
 }
 
 char *home_relative(char *path, char *relative)

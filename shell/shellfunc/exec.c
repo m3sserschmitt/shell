@@ -15,13 +15,14 @@
 #include "util/mem.h"
 #include "util/data.h"
 
+
 int shellf_exec(context *ctx)
 {
     int ctxc;
     context *c_ctx = parse_input(ctx, &ctxc);
     context *ctx_ptr;
 
-    if(!ctxc)
+    if (!ctxc)
     {
         return 0;
     }
@@ -34,19 +35,36 @@ int shellf_exec(context *ctx)
         {
             ctx->err = (char *)malloc((16 + strlen(ctx_ptr->user_input)) * sizeof(char));
             sprintf(ctx->err, "'%s' not found.", ctx_ptr->user_input);
-            
+
             return -1;
         }
 
-        if (ctx_ptr->shellf)
+        /*if (ctx_ptr->script)
         {
-            execute_shellf(ctx_ptr);
+            if(execute_script(ctx_ptr) < 0)
+            {
+
+            }
+        }
+        else */if (ctx_ptr->shellf)
+        {
+            if(execute_shellf(ctx_ptr) < 0)
+            {
+                ctx->err = (char *)malloc((strlen(ctx_ptr->err) * sizeof(char)));
+                strcpy(ctx->err, ctx_ptr->err);
+
+                free_context_r(c_ctx + ctxc - 1);
+
+                return -1;
+            }
         }
         else if (create_process(ctx_ptr) < 0)
         {
             ctx->err = (char *)malloc((54 + strlen(ctx_ptr->user_input)) * sizeof(char));
             sprintf(ctx->err, "errors were encountered while executing command '%s'.", ctx_ptr->user_input);
-            
+
+            free_context_r(c_ctx + ctxc - 1);
+
             return -1;
         }
     }
@@ -58,10 +76,10 @@ int shellf_exec(context *ctx)
     {
         ctx->err = (char *)malloc(50 * sizeof(char));
         strcpy(ctx->err, "failed to receive output data from child process.");
-        
+
         return -1;
     }
-    
+
     if (bytes_read && ctx->result[bytes_read - 1] == '\n')
     {
         ctx->result[bytes_read - 1] = 0;

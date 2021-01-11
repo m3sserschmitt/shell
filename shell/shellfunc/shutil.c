@@ -176,9 +176,27 @@ char *resolve_path(const char *exec, char *path)
     return resolved_path;
 }
 
+int has_extension(const char *basename, const char *extension)
+{
+    int baselen = strlen(basename);
+    const char *ext_ptr = basename + baselen;
+
+    while(ext_ptr != basename)
+    {
+        ext_ptr--;
+        if(*ext_ptr == '.')
+        {
+            break;
+        }
+    }
+
+    return !strcmp(ext_ptr + 1, extension);
+}
+
 int is_executable(context *ctx)
 {
     ctx->shellf = 0;
+    ctx->script = 0;
     ctx->shellf_ptr = NULL;
 
     ctx->path = NULL;
@@ -210,6 +228,16 @@ int is_executable(context *ctx)
 
         struct stat buffer;
         int result = stat(ctx->path, &buffer);
+
+        if(result < 0)
+        {
+            return 0;
+        }
+
+        if(has_extension(first_token, "lua"))
+        {
+            ctx->script = 1;
+        }
 
         free(first_token);
 
