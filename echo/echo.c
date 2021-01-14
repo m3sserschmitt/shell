@@ -46,7 +46,7 @@ int echo(int argc, char **argv)
 
         strcat(message, *(argv + i));
 
-        if (i < argc - 1 && strcmp(">", *(argv + i + 1)) != 0 && strcmp(">>", *(argv + i)) != 0)
+        if (i < argc - 1 && strcmp("-", *(argv + i + 1)) != 0 && strcmp("--", *(argv + i)) != 0)
         {
             strcat(message, " ");
         }
